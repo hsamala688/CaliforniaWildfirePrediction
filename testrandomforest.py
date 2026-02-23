@@ -143,11 +143,11 @@ def train():
     county_encoder = LabelEncoder()
     df["county_encoded"] = county_encoder.fit_transform(df["county"])
 
-    X = df["month", "county_encoded"]
+    X = df[["month", "county_encoded"]]
     y = df["risk"]
 
     model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X, y)
+    model.fit(X, y.values.ravel())
 
     os.makedirs("model", exist_ok=True)
     joblib.dump(model, "model/wildfire_rfc.pkl")
