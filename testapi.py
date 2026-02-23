@@ -14,6 +14,7 @@ try:
     county_encoder = joblib.load(os.path.join(MODEL_DIR, "county_encoder.pkl"))
     county_list = joblib.load(os.path.join(MODEL_DIR, "county_list.pkl"))
     county_fips = joblib.load(os.path.join(MODEL_DIR, "county_fips.pkl"))
+
 except FileNotFoundError:
     raise RuntimeError("Model files not found. Please run testrandomforest.py first.")
 
@@ -48,6 +49,7 @@ def predict(request: PredictRequest):
     for county in county_list:
         try:
             county_encoded = county_encoder.transform([county])[0]
+
         except Exception:
             raise HTTPException(
                 status_code=500, detail=f"Could not encode county: {county}"
