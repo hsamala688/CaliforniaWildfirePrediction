@@ -1,8 +1,9 @@
 venv/
 env/
 .venv/
+cwpvenv
 
 .DS_Store
 
 .vscode/
-
+*.code-workspace
