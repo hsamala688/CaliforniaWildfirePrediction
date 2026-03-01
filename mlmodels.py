@@ -100,7 +100,7 @@ sns.heatmap(
     conf_matrix,
     annot=True,
     fmt="g",
-    cmap="Blues",
+    cmap="Reds",
     cbar=False,
     xticklabels=["No Fire", "Fire"],
     yticklabels=["No Fire", "Fire"],
