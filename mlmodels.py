@@ -14,6 +14,8 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
 # -----------------------
 # import the master csv
 # -----------------------
@@ -151,7 +153,10 @@ clean_names = {
     "lf_evh": "Vegetation Height",
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> cc9123d189a6b6a9ca40ab18784fc2e3122ef4f7
 def clean_feature_name(name):
     name = clean_names.get(name, name)
 
@@ -166,7 +171,10 @@ def clean_feature_name(name):
 
     return name
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> cc9123d189a6b6a9ca40ab18784fc2e3122ef4f7
 top_features_clean = [clean_feature_name(f) for f in top_features]
 
 # -----------------------
