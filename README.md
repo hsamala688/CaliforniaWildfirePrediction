@@ -18,6 +18,7 @@ CaliforniaWildfirePrediction/
 ├── california.geojson                 # California state boundary geometry
 ├── California_Seed_Zones_*.geojson    # California seed zone geographic data
 │
+├── requirements.txt                   # Allows install of required python packages
 └── .gitignore
 ```
 
@@ -50,9 +51,6 @@ cd CaliforniaWildfirePrediction
 ```bash
 pip install -r requirements.txt
 ```
-
-> *If no `requirements.txt` exists yet, the core dependencies are:*
-> `scikit-learn`, `pandas`, `numpy`, `geopandas`, `matplotlib`, `jupyter`
 
 ### 3. Run the data engineering pipeline
 
