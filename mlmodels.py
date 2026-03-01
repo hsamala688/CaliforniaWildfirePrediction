@@ -73,7 +73,7 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)  # predicts fire if prob > 0.5
 y_prob = model.predict_proba(X_test)[:, 1]
-
+# print(np.percentile(y_prob, [25, 50, 70, 85, 95, 99]))
 # Evaluation
 
 accuracy = accuracy_score(y_test, y_pred)
@@ -96,6 +96,7 @@ plt.title("Confusion Matrix - Fire Prediction")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
 plt.show()
+plt.close("all")
 
 print("\nClassification Report")
 print(classification_report(y_test, y_pred, target_names=["No Fire", "Fire"]))
@@ -127,7 +128,7 @@ plt.xlabel("Importance")
 plt.tight_layout()
 plt.show()
 
-joblib.dump(model, "wildfire_model.pkl")
+joblib.dump(model, "wildfire_model.pkl", compress=3)
 fuel_cols = [col for col in df.columns if col.startswith("EVT_FUEL_N_")]
 joblib.dump(fuel_cols, "fuel_encoder.pkl")
 joblib.dump(X.columns.tolist(), "feature_names.pkl")
