@@ -1,51 +1,56 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import Pipeline
+
 
 # -----------------------
-# make dummy data
+# import the master csv
 # -----------------------
-np.random.seed(42)
-n = 500
+file_path = 'master_final.csv'
 
-df = pd.DataFrame({
-    "tmmx": np.random.normal(30, 6, n), # max temp
-    "tmmn": np.random.normal(15, 5, n), # min temp
-    "pr": np.random.exponential(3, n), # precipitation
-    "vs": np.random.normal(4, 2, n), # wind speed
-    "vpd": np.random.normal(2, 1, n), #vapor pressure deficit (air dryness)
-    "erc": np.random.normal(60, 20, n), # energy release component
-    "bi": np.random.normal(80, 25, n), # burning index
-    "fm100": np.random.normal(18, 5, n), # moisture in small fuel (small twigs, leaves, etc.)
-    "fm1000": np.random.normal(25, 6, n), # moisture in large fuels (big logs, etc.)
-})
+df = pd.read_csv(file_path)
+df = df.drop(columns=[
+    'satellite',
+    'instrument',
+    'daynight',
+    'timestamp_utc',
+    'nearest_station_id',
+    'brightness', 
+    'frp',
+    'bright_t31',
+    'type'
+], errors='ignore')
 
-# wildfire rule: hot + dry + windy
-# less moisture
-logit = (
-    -5
-    +0.08 * df["tmmx"] 
-    +0.6 * df["vpd"]
-    +0.1 * df["vs"]
-    -0.05 * df["fm100"]
-    )
+df = pd.get_dummies(df, columns=['EVT_FUEL_N'], drop_first=True)
 
-p_fire = 1 / (1 + np.exp(-logit))
-df["fire"] = np.random.binomial(1, np.clip(p_fire, 0, 0.4))
+df["date"] = pd.to_datetime(df["date"])
+df["month"] = df["date"].dt.month
+df["day_of_year"] = df["date"].dt.dayofyear
+df["year"] = df["date"].dt.year
 
-print("Fire count: ", df["fire"].value_counts())
+df = df.drop(columns=["date"])
 
-# -----------------------
-# model
-# -----------------------
-X = df.drop(columns = "fire")
-y = df["fire"]
+X = df[[
+    'latitude',
+    'longitude',
+    'month',
+    'day_of_year',
+    'year',
+    'wx_tavg_c',
+    'wx_prcp_mm',
+    'wx_wspd_ms',
+    'snow',
+    'lf_evc',
+    'lf_evh'
+] + [col for col in df.columns if col.startswith('EVT_FUEL_N_')]]
+
+y = df['fire']
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
@@ -54,23 +59,41 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-model = Pipeline([
-    ("scaler", StandardScaler()),
-    ("rf", RandomForestClassifier(
-        n_estimators=200,
-        random_state=42,
-        class_weight="balanced"
-    ))
-])
+model = RandomForestClassifier(
+    n_estimators=200,
+    random_state=42,
+    max_depth=None,
+    class_weight='balanced'  # important if fire is rare
+)
 
 model.fit(X_train, y_train)
 
-# y_pred = model.predict(X_test) # predicts fire if prob > 0.5
+y_pred = model.predict(X_test) # predicts fire if prob > 0.5
 y_prob = model.predict_proba(X_test)[:,1]
-y_pred = (y_prob > 0.2).astype(int) # predicts fire if prob > 0.2
+
+#Evaluation
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy * 100:.2f}%')
+
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(6, 5))
+sns.heatmap(conf_matrix,
+            annot=True,
+            fmt='g',
+            cmap='Blues',
+            cbar=False,
+            xticklabels=['No Fire', 'Fire'],
+            yticklabels=['No Fire', 'Fire'])
+
+plt.title('Confusion Matrix - Fire Prediction')
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.show()
 
 print("\nClassification Report")
-print(classification_report(y_test, y_pred, digits=3))
+print(classification_report(y_test, y_pred, target_names=['No Fire', 'Fire']))
 
 print("Confusion Matrix")
 print(confusion_matrix(y_test, y_pred))
@@ -78,16 +101,25 @@ print(confusion_matrix(y_test, y_pred))
 # -----------------------
 # feature importance
 # -----------------------
-rf = model.named_steps["rf"]
-importances = rf.feature_importances_
 
-plt.figure(figsize=(7,5))
-plt.barh(X.columns, importances)
-plt.title("Feature Importance")
+rf=model
+importances = rf.feature_importances_
+feature_names = np.array(X.columns)
+
+# Sort features by importance
+indices = np.argsort(importances)[::-1]
+
+# Select top 20
+top_n = 20
+top_features = feature_names[indices][:top_n]
+top_importances = importances[indices][:top_n]
+
+# Plot
+plt.figure(figsize=(8,6))
+plt.barh(top_features[::-1], top_importances[::-1])
+plt.title("Top 20 Feature Importances")
 plt.xlabel("Importance")
 plt.tight_layout()
 plt.show()
 
-# -----------------------
-# confusion matrix heat map fin later
-# -----------------------
+
