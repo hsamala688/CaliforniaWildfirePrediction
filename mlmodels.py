@@ -119,11 +119,51 @@ top_n = 20
 top_features = feature_names[indices][:top_n]
 top_importances = importances[indices][:top_n]
 
+# -----------------------
+# feature names clean
+# -----------------------
+clean_names = {
+    "day_of_year": "Day of Year",
+    "month": "Month",
+    "year": "Year",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "wx_tavg_c": "Avg Temperature (°C)",
+    "wx_prcp_mm": "Precipitation (mm)",
+    "wx_wspd_ms": "Wind Speed (m/s)",
+    "lf_evc": "Vegetation Cover",
+    "lf_evh": "Vegetation Height",
+}
+
+def clean_feature_name(name):
+    name = clean_names.get(name, name)
+
+    name = name.replace("EVT_FUEL_N_", "")
+
+    name = name.replace("Mediterranean California", "Med. CA")
+    name = name.replace("North American", "N. American")
+    name = name.replace("Sparsely Vegetated Systems", "Sparse Veg.")
+    name = name.replace("Mixed Conifer Forest and Woodland", "Mixed Conifer")
+
+    name = name.replace("_", " ")
+
+    return name
+
+top_features_clean = [clean_feature_name(f) for f in top_features]
+
+# -----------------------
 # Plot
 plt.figure(figsize=(8, 6))
 plt.barh(top_features[::-1], top_importances[::-1])
 plt.title("Top 20 Feature Importances")
 plt.xlabel("Importance")
+
+plt.grid(axis="x", linestyle="--", alpha=0.5)
+plt.grid(axis="y", visible=False)
+
+plt.gca().spines["top"].set_visible(False)
+plt.gca().spines["right"].set_visible(False)
+
 plt.tight_layout()
 plt.show()
 
