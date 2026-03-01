@@ -14,8 +14,6 @@ CaliforniaWildfirePrediction/
 ├── DataEngineering.ipynb              # Exploratory data engineering notebook
 ├── dataengineering.py                 # Data processing and feature engineering pipeline
 ├── mlmodels.py                        # ML model training and evaluation
-├── testrandomforest.py                # Testing and validation for the Random Forest model
-├── testapi.py                         # API endpoint testing
 │
 ├── california.geojson                 # California state boundary geometry
 ├── California_Seed_Zones_*.geojson    # California seed zone geographic data
