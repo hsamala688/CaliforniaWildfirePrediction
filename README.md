@@ -11,7 +11,7 @@ California faces growing wildfire threats each year. This project leverages mach
 ```
 CaliforniaWildfirePrediction/
 │
-├── DataEngineering.ipynb              # Exploratory data engineering notebook
+├── DataEngineering.ipynb              # data engineering notebook
 ├── dataengineering.py                 # Data processing and feature engineering pipeline
 ├── mlmodels.py                        # ML model training and evaluation
 │
