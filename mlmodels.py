@@ -4,7 +4,14 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score,
+)
 from sklearn.model_selection import train_test_split
 
 # -----------------------
@@ -41,9 +48,6 @@ X = df[
     [
         "latitude",
         "longitude",
-        "month",
-        "day_of_year",
-        "year",
         "wx_tavg_c",
         "wx_prcp_mm",
         "wx_wspd_ms",
@@ -73,7 +77,19 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)  # predicts fire if prob > 0.5
 y_prob = model.predict_proba(X_test)[:, 1]
-# print(np.percentile(y_prob, [25, 50, 70, 85, 95, 99]))
+
+# -----------------------
+# regression type evaluation
+# -----------------------
+
+r2 = r2_score(y_test, y_prob)
+mae = mean_absolute_error(y_test, y_prob)
+rmse = np.sqrt(mean_squared_error(y_test, y_prob))
+
+print(f"\nR^2: {r2:.4f}")
+print(f"Mean Absolute Error (MAE): {mae:.4f}")
+print(f"Root Mean Squared Error (RMSE): {rmse:.4f}")
+
 # Evaluation
 
 accuracy = accuracy_score(y_test, y_pred)
@@ -86,7 +102,7 @@ sns.heatmap(
     conf_matrix,
     annot=True,
     fmt="g",
-    cmap="Blues",
+    cmap="Reds",
     cbar=False,
     xticklabels=["No Fire", "Fire"],
     yticklabels=["No Fire", "Fire"],
@@ -96,7 +112,6 @@ plt.title("Confusion Matrix - Fire Prediction")
 plt.xlabel("Predicted Label")
 plt.ylabel("True Label")
 plt.show()
-plt.close("all")
 
 print("\nClassification Report")
 print(classification_report(y_test, y_pred, target_names=["No Fire", "Fire"]))
@@ -120,15 +135,62 @@ top_n = 20
 top_features = feature_names[indices][:top_n]
 top_importances = importances[indices][:top_n]
 
+# -----------------------
+# feature names clean
+# -----------------------
+clean_names = {
+    "day_of_year": "Day of Year",
+    "month": "Month",
+    "year": "Year",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "wx_tavg_c": "Avg Temperature (°C)",
+    "wx_prcp_mm": "Precipitation (mm)",
+    "wx_wspd_ms": "Wind Speed (m/s)",
+    "lf_evc": "Vegetation Cover",
+    "lf_evh": "Vegetation Height",
+}
+
+
+def clean_feature_name(name):
+    name = clean_names.get(name, name)
+
+    name = name.replace("EVT_FUEL_N_", "")
+
+    name = name.replace("Mediterranean California", "Med. CA")
+    name = name.replace("North American", "N. American")
+    name = name.replace("Sparsely Vegetated Systems", "Sparse Veg.")
+    name = name.replace("Mixed Conifer Forest and Woodland", "Mixed Conifer")
+
+    name = name.replace("_", " ")
+
+    return name
+
+
+top_features_clean = [clean_feature_name(f) for f in top_features]
+
+# -----------------------
 # Plot
+# -----------------------
 plt.figure(figsize=(8, 6))
-plt.barh(top_features[::-1], top_importances[::-1])
+
+plt.style.use("seaborn-v0_8-whitegrid")
+colors = plt.cm.Reds(np.linspace(0.3, 0.9, len(top_importances)))
+
+plt.barh(top_features_clean[::-1], top_importances[::-1], color=colors)
 plt.title("Top 20 Feature Importances")
 plt.xlabel("Importance")
+
+plt.grid(axis="x", linestyle="--", alpha=0.5)
+plt.grid(axis="y", visible=False)
+
+plt.gca().spines["top"].set_visible(False)
+plt.gca().spines["right"].set_visible(False)
+
 plt.tight_layout()
 plt.show()
 
-joblib.dump(model, "wildfire_model.pkl", compress=3)
+joblib.dump(model, "wildfire_model.pkl")
 fuel_cols = [col for col in df.columns if col.startswith("EVT_FUEL_N_")]
 joblib.dump(fuel_cols, "fuel_encoder.pkl")
 joblib.dump(X.columns.tolist(), "feature_names.pkl")
