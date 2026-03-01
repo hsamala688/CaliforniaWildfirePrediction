@@ -153,8 +153,13 @@ top_features_clean = [clean_feature_name(f) for f in top_features]
 
 # -----------------------
 # Plot
+# -----------------------
 plt.figure(figsize=(8, 6))
-plt.barh(top_features[::-1], top_importances[::-1])
+
+plt.style.use("seaborn-v0_8-whitegrid")
+colors = plt.cm.Reds(np.linspace(0.3, 0.9, len(top_importances)))
+
+plt.barh(top_features_clean[::-1], top_importances[::-1], color=colors)
 plt.title("Top 20 Feature Importances")
 plt.xlabel("Importance")
 
