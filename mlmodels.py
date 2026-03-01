@@ -7,6 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
 # -----------------------
 # import the master csv
 # -----------------------
@@ -73,6 +75,18 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)  # predicts fire if prob > 0.5
 y_prob = model.predict_proba(X_test)[:, 1]
+
+# -----------------------
+# regression type evaluation
+# -----------------------
+
+r2 = r2_score(y_test, y_prob)
+mae = mean_absolute_error(y_test, y_prob)
+rmse = np.sqrt(mean_squared_error(y_test, y_prob))
+
+print(f"\nR^2: {r2:.4f}")
+print(f"Mean Absolute Error (MAE): {mae:.4f}")
+print(f"Root Mean Squared Error (RMSE): {rmse:.4f}")
 
 # Evaluation
 
