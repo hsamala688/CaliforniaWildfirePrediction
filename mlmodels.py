@@ -39,11 +39,6 @@ df = df.drop(
 
 df = pd.get_dummies(df, columns=["EVT_FUEL_N"], drop_first=True)
 
-df["date"] = pd.to_datetime(df["date"])
-df["month"] = df["date"].dt.month
-df["day_of_year"] = df["date"].dt.dayofyear
-df["year"] = df["date"].dt.year
-
 df = df.drop(columns=["date"])
 
 X = df[
